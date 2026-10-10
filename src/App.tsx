@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import type {User} from '@supabase/supabase-js';
 import {Activity,ArrowDownToLine,ArrowLeft,ArrowRight,BookOpen,CalendarDays,Check,ChevronDown,ChevronRight,Clipboard,Cloud,Code2,Copy,FileText,Folder,FolderPlus,Grid2X2,HardDrive,Heart,Home,Image,Link2,LogOut,Menu,MessageCircle,Mic,MoreHorizontal,Plus,Search,Send,Settings,ShieldCheck,Sparkles,Trash2,UploadCloud,Users,Video, X} from 'lucide-react';
-import {API_URL,Chat,configured,displayId,Folder,friendlyDate,Group,GroupItem,Item,loginWithGoogle,prettySize,readableError,supabase,Task,typeIcons,View,watchNativeOAuth} from './lib';
+import {API_URL,Chat,configured,displayId,Folder as FolderData,friendlyDate,Group,GroupItem,Item,loginWithGoogle,prettySize,readableError,supabase,Task,typeIcons,View,watchNativeOAuth} from './lib';
 
 type IconType=typeof Home;
 type NavItem={key:View;label:string;icon:IconType};
@@ -16,7 +16,7 @@ export default function App(){
  const [loading,setLoading]=useState(true);
  const [view,setView]=useState<View>('home');
  const [items,setItems]=useState<Item[]>([]);
- const [folders,setFolders]=useState<Folder[]>([]);
+ const [folders,setFolders]=useState<FolderData[]>([]);
  const [tasks,setTasks]=useState<Task[]>([]);
  const [groups,setGroups]=useState<Group[]>([]);
  const [groupItems,setGroupItems]=useState<GroupItem[]>([]);
@@ -57,7 +57,7 @@ export default function App(){
    supabase.from('qi_ai_messages').select('id,role,content').order('created_at',{ascending:true}).limit(100),
   ]);
   for(const result of [i,f,t,g,gm])if(result.error)throw result.error;
-  setItems((i.data||[]) as Item[]);setFolders((f.data||[]) as Folder[]);setTasks((t.data||[]) as Task[]);setGroups((g.data||[]) as Group[]);setMessages((gm.data||[]) as Chat[]);
+  setItems((i.data||[]) as Item[]);setFolders((f.data||[]) as FolderData[]);setTasks((t.data||[]) as Task[]);setGroups((g.data||[]) as Group[]);setMessages((gm.data||[]) as Chat[]);
  }
  async function fetchPosts(groupId:string){if(!supabase)return;
   const {data,error}=await supabase.from('qi_group_items').select('*').eq('group_id',groupId).order('created_at',{ascending:false});
@@ -146,7 +146,7 @@ export default function App(){
 
  const action=(label:string,icon:IconType,click:()=>void,secondary=false)=>{const Icon=icon;return <button className={secondary?'btn btn-ghost':'btn btn-primary'} onClick={click} type="button"><Icon size={17}/>{label}</button>};
  const iconButton=(icon:IconType,title:string,click:()=>void)=>{const Icon=icon;return <button aria-label={title} title={title} className="icon-button" onClick={click}><Icon size={17}/></button>};
- const folderTile=(f:Folder)=><button key={f.id} className="folder-card glass" onClick={()=>{setFolderId(f.id);go('storage');setFolderId(f.id)}}><div className="folder-symbol"><Folder size={24} fill="#b3a5fd" strokeWidth={1.5}/></div><strong>{f.name}</strong><small>{items.filter(x=>x.folder_id===f.id).length} items</small></button>;
+ const folderTile=(f:FolderData)=><button key={f.id} className="folder-card glass" onClick={()=>{setFolderId(f.id);go('storage');setFolderId(f.id)}}><div className="folder-symbol"><Folder size={24} fill="#b3a5fd" strokeWidth={1.5}/></div><strong>{f.name}</strong><small>{items.filter(x=>x.folder_id===f.id).length} items</small></button>;
  const itemTile=(it:Item)=><div key={it.id} className={`item-row ${grid?'tile':''}`}><div className="file-icon">{typeIcons[it.kind]||'📦'}</div><div className="item-info"><strong title={it.title}>{it.title}</strong><small>{it.kind.toUpperCase()} · {friendlyDate(it.created_at)} · {it.display_id}</small></div><div className="item-controls">{iconButton(Copy,'Copy ID',()=>copy(it.display_id))}{iconButton(Heart,it.favorite?'Remove favorite':'Favorite',()=>run(()=>toggleFavorite(it)))}{iconButton(ArrowDownToLine,'Open or download',()=>run(()=>openItem(it)))}{iconButton(Trash2,'Delete',()=>run(()=>deleteItem(it)))}</div></div>;
 
  if(loading)return <div className="loading-screen"><img src="/app-icon.svg" alt="Quick IT"/><span>Preparing your space…</span></div>;
