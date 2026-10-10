@@ -23,7 +23,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - name: Check runner Android SDK
+        run: |
+          test -d "$ANDROID_HOME" || (echo 'Android SDK not found on runner' && exit 1)
+          echo "Android SDK: $ANDROID_HOME"
       - name: Install dependencies
         run: if [ -f package-lock.json ]; then npm ci; else npm install --no-audit; fi
       - name: Build Quick IT website bundle
